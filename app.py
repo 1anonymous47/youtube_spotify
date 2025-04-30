@@ -22,7 +22,7 @@ CORS(app)
 
 ytlopts={
     'format':'bestaudio/best',
-    # 'outtmpl':'src\\static\\audios\\%(id)s.%(ext)s',
+    'outtmpl':'src\\static\\audios\\%(id)s.%(ext)s',
 }
 
 @app.route('/writer')
@@ -55,7 +55,9 @@ def reader():
     print()
     print(database)
     return "Readed"
-
+@app.route('/')
+def printer():
+    return jsonify({"Users":database,"Songdetails":songdetails,"Playlists":playlist})
 
 #WEBPAAGES
 @app.route('/downloaderpage')
@@ -132,7 +134,7 @@ def downloader():
             return jsonify({"data":"Invalid Url"})
         else:
             songdetails[res[3]]=[res[0],res[2]]
-            return jsonify({"data":"success",'audiosrc':res[2],'videosrc':res[1],'audiotittle':res[0],'audioid':res[3]})
+            return jsonify({"data":"success",'audiosrc':'static/audios/'+res[2],'videosrc':res[1],'audiotittle':res[0],'audioid':res[3]})
     else:
         return jsonify({"data":"fail"})
     
@@ -140,14 +142,14 @@ def audiodownloader(url):
     with yt_dlp.YoutubeDL(ytlopts) as ydl:
         try:
             audiosrc=""
-            info = ydl.extract_info(url,download=False)
+            info = ydl.extract_info(url,download=True)
             tittle = info["title"]
             thumbnail = info["thumbnail"]
             temp = info['formats']
             audioid=info["id"]
             for i in range(len(temp)):
                 if(temp[i]['audio_ext']!="none" and temp[i]['audio_ext']=="webm"):
-                    audiosrc=temp[i]['url']
+                    audiosrc=info["id"]+"."+temp[i]['audio_ext']
             return tittle,thumbnail,audiosrc,audioid
         except Exception as e:
             return "err"

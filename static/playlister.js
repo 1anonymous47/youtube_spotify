@@ -17,7 +17,7 @@ function playlistadder()
             var sound      = document.createElement('audio');
             sound.id       = 'audio-player';
             sound.controls = 'controls';
-            sound.src      = value[1];
+            sound.src      = 'static/audios/'+value[1];
             sound.type     = 'audio/webm';
             var tittle      = document.createElement('h4');
             tittle.innerHTML = value[0];
