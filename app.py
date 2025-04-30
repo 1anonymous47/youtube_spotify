@@ -1,39 +1,60 @@
 import yt_dlp
 from flask import Flask,render_template,request,jsonify
-import json
 import urllib.request
 import re
 from collections import OrderedDict
+from flask_cors import CORS 
 
 app = Flask(__name__)
 
 database = ['user1','user2']
-songdetails = {'tmNpR_xQd8E': ['Xcho - Ты и Я | Tik Tok Remix', 'https://rr1---sn-8vq54voxpo-nm8e.googlevideo.com/videoplayback?expire=1745411352&ei=uIgIaNOGJcucssUPjsebqA4&ip=2402%3A3a80%3A48%3Abe99%3A4c60%3A1e67%3Aa7bb%3A9c53&id=o-APrjgE-rYrYQsfKrByw__HfhYuj0hSXfH07Hk-B9Nt2p&itag=251&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1745389752%2C&mh=J-&mm=31%2C29&mn=sn-8vq54voxpo-nm8e%2Csn-pqx5jxaa0a5g-h55l&ms=au%2Crdu&mv=m&mvi=1&pl=48&rms=au%2Cau&initcwndbps=456250&bui=AccgBcOXjvq-ht5Dps_VGMsTIX2sJ8iKYje_xzd2bauyhLGEzUHPhn5NQONaRIiIAY90vddASWCXmcDn&vprv=1&svpuc=1&mime=audio%2Fwebm&ns=uIFeQcW2oAy93H2oi3u6pd8Q&rqh=1&gir=yes&clen=2867386&dur=182.121&lmt=1734846140830605&mt=1745389258&fvip=5&keepalive=yes&lmw=1&c=TVHTML5&sefc=1&txp=5532434&n=MBrlHNVHduEN4A&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cdur%2Clmt&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=ACuhMU0wRAIgS4-VCwBEh9y59CsSr3NRYwKLDiqy9aULIvtnLzcrv4MCIBDs-VBG5hcr5Ri2AmiNLn06corN1R4AlXRtcq0dk0vG&sig=AJfQdSswRAIgPsHFWK8VR150I52ex_43FXR_4cykcAQJCBftcGjvDfQCIGHlx1In0QyDYALKCbRtsYj-78C78OOWUsw_z8Cna7FN'],
-               'ggG9ySCChYw': ['The Neighbourhood - Softcore (Official Audio)', 'https://rr1---sn-8vq54voxpo-nm8l.googlevideo.com/videoplayback?expire=1745412393&ei=yYwIaPziGYP0s8IP1tjrsQU&ip=2402%3A3a80%3A48%3Abe99%3A4c60%3A1e67%3Aa7bb%3A9c53&id=o-AA5R1PeX8C0t7hIoAF5NugMF7OdqGrLbiCs9pt41O4QK&itag=251&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1745390793%2C&mh=fe&mm=31%2C29&mn=sn-8vq54voxpo-nm8l%2Csn-pqx5jxaa0a5g-h55l&ms=au%2Crdu&mv=m&mvi=1&pl=48&rms=au%2Cau&gcr=in&initcwndbps=510000&bui=AccgBcP6cwjFhUhul7wZrSi0ijfoI3o39I2rs7iHHJH_nbbEJDMYPe8qXvoxasSZ1aM1NMBMkLgSJGrA&vprv=1&svpuc=1&mime=audio%2Fwebm&ns=plkxxeo9SrDhOepz-i5GVJ8Q&rqh=1&gir=yes&clen=3405466&dur=210.061&lmt=1714781452797631&mt=1745390211&fvip=8&keepalive=yes&lmw=1&c=TVHTML5&sefc=1&txp=4502434&n=h5hUj-36MOMD9A&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cgcr%2Cbui%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cdur%2Clmt&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=ACuhMU0wRQIgEUecRiCQssjgyP1VZzJ48FYzkLyWnR2wv_Nwq6HwIk4CIQCtls34NAn90QdyuymwGqkw3BiZdBNp_QVGSjQbCdAp2Q%3D%3D&sig=AJfQdSswRQIhALYWKHkNFZc6PpmuKQuHRuGN86AL08EMLSyQG31wliIpAiAaZu5sIxQ_V1Ow7ua-Sz9Ix6r_CrK3DvMks3NIAOsOsw%3D%3D']}
-# playlist = {
-# 'user1':['xtmNpR_xQd8E.webm','ggG9ySCChYw.webm'],
-# 'user2':['ggG9ySCChYw.webm','xtmNpR_xQd8E.webm']
+# songdetails = {'ggG9ySCChYw': ['The Neighbourhood - Softcore (Official Audio)', 'https://rr1---sn-8vq54voxpo-nm8l.googlevideo.com/videoplayback?expire=1745878903&ei=F6sPaPOQHdHGs8IPkeij8AI&ip=2402%3A3a80%3A18%3A1b36%3A8930%3A701a%3Ab2dd%3A3d0e&id=o-AKiWAoQRlq05ifr10BFbvyjvJHmuWMgzYrI9qSqqY8VL&itag=251&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1745857303%2C&mh=fe&mm=31%2C29&mn=sn-8vq54voxpo-nm8l%2Csn-pqx5jxaa0a5g-h55l&ms=au%2Crdu&mv=m&mvi=1&pl=48&rms=au%2Cau&gcr=in&initcwndbps=310000&bui=AecWEAay3NsVf-0NVAcaQxtFRBe4TQPPm-rH8DoU33voXprMbKBfbpj_Ur5iDf-xb8LP4cZ6v_qNACb2&vprv=1&svpuc=1&mime=audio%2Fwebm&ns=WYMfI-8pJcGYa26aShgW6CYQ&rqh=1&gir=yes&clen=3405466&dur=210.061&lmt=1714781452797631&mt=1745856812&fvip=8&keepalive=yes&lmw=1&c=TVHTML5&sefc=1&txp=4502434&n=gm4MpqtJwUBADA&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cgcr%2Cbui%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cdur%2Clmt&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=ACuhMU0wRQIgCkPpT6HUPV2LH7IGdksqZnn2Z2B2oMybuhrNHHTLBJACIQCZ7O_a2z9A7f7PeJDtCqPG4QKiZH2MZYkjCGBuWvb3CQ%3D%3D&sig=AJfQdSswRQIgd8EI9ynTolNg6xbVqQwceAUUJekDN8I2OTQZ804LuRYCIQD7CmMtf8svTnKBBj6MVOBaqtOjcJrifsVpM4l4kvzfRw%3D%3D']}
+# playlist = {'User1': ['ggG9ySCChYw']}
 
-# }
 
-# songdetails = {}
+
+songdetails = {}
 playlist = {
 }
 
-
+CORS(app)
             
 
 ytlopts={
     'format':'bestaudio/best',
-    'outtmpl':'src\\static\\audios\\%(id)s.%(ext)s',
+    # 'outtmpl':'src\\static\\audios\\%(id)s.%(ext)s',
 }
 
-@app.route('/')
-def details():
+@app.route('/writer')
+def writer():
+    f = open("songdetails.txt",'w')
+    f.write(str(songdetails))
+    f = open("playlist.txt",'w')
+    f.write(str(playlist))
+    f = open("database.txt",'w')
+    f.write(str(database))
     print(songdetails)
     print()
     print(playlist)
-    return "Shown"
+    print()
+    print(database)
+    return "Writed"
+
+@app.route('/reader')
+def reader():
+    f = open("songdetails.txt",'r')
+    songdetails = f.read
+    print(songdetails)
+    f = open("playlist.txt",'r')
+    playlist = f.read()
+    f = open("database.txt",'r')
+    database = f.read()
+    print(songdetails)
+    print()
+    print(playlist)
+    print()
+    print(database)
+    return "Readed"
 
 
 #WEBPAAGES
@@ -48,6 +69,23 @@ def playlisterpage():
 @app.route('/searcherpage')
 def searchpage():
     return render_template('searcher.html')
+
+@app.route('/registerpage')
+def registerpage():
+    return render_template('register.html')
+
+
+@app.route('/register',methods=['POST','GET'])
+def register():
+    data = request.get_json()
+    if (data['username'] == ""):
+        return jsonify({"data":"fail"})
+    if(data['username'] in database):
+        return jsonify({"data":"already"})
+    else:
+        database.append(data['username'])
+        return jsonify({"data":"success"})
+
 
 #PLAYLIST ADDER
 @app.route('/playlistadder',methods=['GET','POST'])
